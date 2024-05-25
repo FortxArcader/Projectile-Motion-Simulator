@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projectile Motion Simulator</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #111;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1,
+        h2,
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 24px;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* Introduction Section */
+        #introduction {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: textAnimation 1s ease-in-out;
+        }
+
+        /* Form Styles */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            animation: textAnimation 1s ease-in-out;
+        }
+
+        .controls label,
+        .controls select,
+        .controls input,
+        .controls button {
+            margin: 5px;
+        }
+
+        /* Animation Canvas Styles */
+        #animation {
+            margin-top: 20px;
+            border: 1px solid #fff;
+            width: 100%;
+            height: 400px;
+            /* Expanded height */
+            position: relative;
+            background-color: #f5f5dc;
+            /* Light cream background */
+        }
+
+        /* Results Styles */
+        .results {
+            margin-top: 20px;
+            text-align: center;
+            animation: textAnimation 1s ease-in-out;
+        }
+
+        /* Text Animation */
+        @keyframes textAnimation {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Projectile Motion Simulator</h1>
+    </header>
+
+    <div class="container">
+        <div id="introduction">
+            <h2>Welcome to the Projectile Motion Simulator By Rupam Rathi!</h2>
+            <p>This simulator allows you to visualize the motion of projectiles under various conditions. You can adjust
+                parameters such as the object type, weight, air resistance, gravity, and angle of projection to observe
+                how they affect the trajectory of the projectile.</p>
+            <p>Have fun experimenting!</p>
+        </div>
+
+        <div class="controls">
+            <label for="objectType">Object Type:</label>
+            <select id="objectType">
+                <option value="ball">Ball</option>
+                <option value="stone">Stone</option>
+                <option value="arrow">Arrow</option>
+            </select>
+
+            <label for="weight">Weight (kg):</label>
+            <input type="number" id="weight" value="1" min="0.1" step="0.1">
+
+            <label for="airResistance">Air Resistance:</label>
+            <select id="airResistance">
+                <option value="none">None</option>
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+
+            <label for="gravity">Gravity (m/s²):</label>
+            <input type="number" id="gravity" value="9.8" step="0.1">
+
+            <label for="angle">Angle of Projection (degrees):</label>
+            <input type="number" id="angle" value="45" min="0" max="90" step="1">
+
+            <label for="initialVelocity">Initial Velocity (m/s):</label>
+            <input type="number" id="initialVelocity" value="20" step="0.1">
+
+            <button onclick="startSimulation()">Calculate</button>
+        </div>
+
+        <div id="animation"></div>
+
+        <div class="results">
+            <p>Range: <span id="range">0</span> m</p>
+            <p>Maximum Height: <span id="maxHeight">0</span> m</p>
+            <p>Time of Flight: <span id="timeOfFlight">0</span> s</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Projectile Motion Simulator | Created by Rupam Rathi</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script>
+        let angle, velocity, gravity, weight, airResistance;
+        let range, maxHeight, timeOfFlight;
+        let animationCanvas;
+
+        function startSimulation() {
+            angle = parseFloat(document.getElementById('angle').value);
+            velocity = parseFloat(document.getElementById('initialVelocity').value);
+            gravity = parseFloat(document.getElementById('gravity').value);
+            weight = parseFloat(document.getElementById('weight').value);
+            airResistance = document.getElementById('airResistance').value;
+
+            calculateTrajectory();
+            setup();
+        }
+
+        function calculateTrajectory() {
+            let angleRad = angle * (Math.PI / 180);
+            let vx = velocity * Math.cos(angleRad);
+            let vy = velocity * Math.sin(angleRad);
+
+            let dragCoefficient = getDragCoefficient(airResistance);
+            let g = gravity;
+
+            let t = (2 * vy) / g;
+            timeOfFlight = t.toFixed(2);
+
+            let h = (vy * vy) / (2 * g);
+            maxHeight = h.toFixed(2);
+
+            let r = (vx * t);
+            range = r.toFixed(2);
+
+            document.getElementById('range').innerText = range;
+            document.getElementById('maxHeight').innerText = maxHeight;
+            document.getElementById('timeOfFlight').innerText = timeOfFlight;
+        }
+
+        function getDragCoefficient(airResistance) {
+            switch (airResistance) {
+                case 'none':
+                    return 0;
+                case 'low':
+                    return 0.1;
+                case 'medium':
+                    return 0.3;
+                case 'high':
+                    return 0.5;
+                default:
+                    return 0;
+            }
+        }
+
+        function setup() {
+            animationCanvas = createCanvas(800, 400);
+            animationCanvas.parent('animation');
+            let angleRad = angle * (Math.PI / 180);
+            let vx = velocity * Math.cos(angleRad);
+            let vy = velocity * Math.sin(angleRad);
+            let x = 0;
+            let y = height;
+            let t = 0;
+
+            background(240);
+
+            let interval = setInterval(() => {
+                let dragCoefficient = getDragCoefficient(airResistance);
+                let ax = -dragCoefficient * vx;
+                let ay = -gravity - (dragCoefficient * vy);
+
+                vx += ax * 0.1;
+                vy += ay * 0.1;
+
+                x += vx * 0.1;
+                y -= vy * 0.1;
+
+                if (y >= height) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                ellipse(x, y, 10, 10);
+            }, 50);
+        }
+        function setup() {
+            animationCanvas = createCanvas(800, 400);
+            animationCanvas.parent('animation');
+            let angleRad = angle * (Math.PI / 180);
+            let vx = velocity * Math.cos(angleRad);
+            let vy = velocity * Math.sin(angleRad);
+            let x = 0;
+            let y = height;
+            let t = 0;
+
+            background(240);
+
+            let interval = setInterval(() => {
+                let dragCoefficient = getDragCoefficient(airResistance);
+                let ax = -dragCoefficient * vx;
+                let ay = -gravity - (dragCoefficient * vy);
+
+                vx += ax * 0.1;
+                vy += ay * 0.1;
+
+                x += vx * 0.1;
+                y -= vy * 0.1;
+
+                if (y >= height) {
+                    clearInterval(interval);
+                    return;
+                }
+
+                fill(255); // Set fill color back to white for ball
+                ellipse(x, y, 10, 10);
+            }, 50);
+
+            // Display Time of Flight
+            fill(0); // Set text color to black
+            textSize(16);
+            textAlign(CENTER, TOP);
+            text(`Time of Flight: ${timeOfFlight} s`, width / 2, 10);
+        }
+
+
+
+    </script>
+
+</body>
+
+</html>
